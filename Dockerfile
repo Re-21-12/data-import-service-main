@@ -1,5 +1,5 @@
 # Multi-stage build: compilar con Maven, ejecutar con runtime ligero
-FROM maven:3.10.1-eclipse-temurin-21 AS build
+FROM maven:3.10.1-jdk-21 AS build
 WORKDIR /workspace
 
 # Copiar pom y fuente, usar cache de dependencias
