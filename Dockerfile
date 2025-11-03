@@ -1,6 +1,12 @@
 # Multi-stage build: compilar con Maven, ejecutar con runtime ligero
-FROM maven:3.10.1-jdk-21 AS build
+FROM eclipse-temurin:21-jdk-jammy AS build
 WORKDIR /workspace
+
+# Instalar Maven en el contenedor base con JDK21 (evita depender de un tag maven:... que no exista)
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends maven ca-certificates \
+	&& rm -rf /var/lib/apt/lists/*
 
 # Copiar pom y fuente, usar cache de dependencias
 COPY pom.xml ./
