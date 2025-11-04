@@ -1,59 +1,85 @@
 name: Publish Docker image to GitHub Container Registry (GHCR)
 
 on:
-    push:
-        branches:
-            - master
-            - main
-        tags:
-            - "v*"
+  push:
+    branches:
+      - master
+      - main
+    tags:
+      - "v*"
 
 permissions:
-    contents: read
-    packages: write
+  contents: read
+  packages: write
 
 jobs:
-    build-and-push:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-            - name: Log in to GitHub Container Registry
-              uses: docker/login-action@v3
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Extract metadata for Docker build
-              id: meta
-              uses: docker/metadata-action@v5
-              with:
-                  images: ghcr.io/${{ github.repository_owner }}/data-import-service
-                  tags: |
-                      type=ref,event=branch
-                      type=sha
-                      type=raw,value=latest
+      - name: Extract metadata for Docker build
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/data-import-service
+          tags: |
+            type=ref,event=branch
+            type=sha
+            type=raw,value=latest
 
-            - name: Build and push image
-              uses: docker/build-push-action@v5
-              with:
-                  context: .
-                  file: ./Dockerfile
-                  platforms: linux/amd64,linux/arm64
-                  push: true
-                  tags: ${{ steps.meta.outputs.tags }}
-                  labels: ${{ steps.meta.outputs.labels }}
-                  build-args: |
-                      MAVEN_OPTS=-Xmx1024m
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            MAVEN_OPTS=-Xmx1024m
 
-            - name: Image digest
-              run: |
-                  echo "Image pushed: ${{ steps.meta.outputs.tags }}"
+      - name: Image digest
+        run: |
+          echo "Image pushed: ${{ steps.meta.outputs.tags }}"
+
+      - name: Make GHCR package public
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_NAME: data-import-service
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          echo "Setting visibility to public for package ${PACKAGE_NAME} owned by ${OWNER}"
+          # Try org endpoint first, then user endpoint
+          for scope in orgs users; do
+            url="https://api.github.com/${scope}/${OWNER}/packages/container/${PACKAGE_NAME}/visibility"
+            echo "Trying $url"
+            status=$(curl -s -o /dev/null -w "%{http_code}" \
+              -X PUT \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              "$url" \
+              -d '{"visibility":"public"}' || echo "000")
+            if [ "$status" = "200" ] || [ "$status" = "204" ]; then
+              echo "Visibility set to public via ${scope}/${OWNER} (HTTP $status)"
+              exit 0
+            fi
+          done
+          echo "Failed to set package visibility to public (last HTTP status: $status)"
+          exit 1
