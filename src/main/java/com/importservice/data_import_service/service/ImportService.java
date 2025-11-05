@@ -12,9 +12,13 @@ import java.io.StringReader;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class ImportService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ImportService.class);
 
     @Autowired private EquipoRepository equipoRepository;
     @Autowired private JugadorRepository jugadorRepository;
@@ -36,6 +40,7 @@ public class ImportService {
                             String[] r = rows.get(i);
                             Equipo e = new Equipo(r[0], Long.parseLong(r[1]));
                             equipoRepository.save(e);
+                            logger.info("Inserted Equipo -> nombre='{}', idLocalidad={}", e.getNombre(), e.getIdLocalidad());
                             success++;
                         } catch (Exception ex) {
                             failed++;
@@ -47,6 +52,7 @@ public class ImportService {
                 Equipo[] equipos = objectMapper.readValue(content, Equipo[].class);
                 for (Equipo e : equipos) {
                     equipoRepository.save(e);
+                    logger.info("Inserted Equipo -> nombre='{}', idLocalidad={}", e.getNombre(), e.getIdLocalidad());
                     success++;
                 }
             }
@@ -77,6 +83,7 @@ public class ImportService {
                             j.setEdad(Integer.parseInt(r[5]));
                             j.setIdEquipo(Long.parseLong(r[6]));
                             jugadorRepository.save(j);
+                            logger.info("Inserted Jugador -> nombre='{}', apellido='{}', idEquipo={}", j.getNombre(), j.getApellido(), j.getIdEquipo());
                             success++;
                         } catch (Exception ex) {
                             failed++;
@@ -88,6 +95,7 @@ public class ImportService {
                 Jugador[] jugadores = objectMapper.readValue(content, Jugador[].class);
                 for (Jugador j : jugadores) {
                     jugadorRepository.save(j);
+                    logger.info("Inserted Jugador -> nombre='{}', apellido='{}', idEquipo={}", j.getNombre(), j.getApellido(), j.getIdEquipo());
                     success++;
                 }
             }
@@ -110,7 +118,8 @@ public class ImportService {
                         try {
                             String[] r = rows.get(i);
                             Localidad l = new Localidad(r[0]);
-                            localidadRepository.save(l);
+                                localidadRepository.save(l);
+                                logger.info("Inserted Localidad -> nombre='{}'", l.getNombre());
                             success++;
                         } catch (Exception ex) {
                             failed++;
@@ -122,6 +131,7 @@ public class ImportService {
                 Localidad[] localidades = objectMapper.readValue(content, Localidad[].class);
                 for (Localidad l : localidades) {
                     localidadRepository.save(l);
+                    logger.info("Inserted Localidad -> nombre='{}'", l.getNombre());
                     success++;
                 }
             }
@@ -148,7 +158,8 @@ public class ImportService {
                                 Long.parseLong(r[1]),
                                 Long.parseLong(r[2])
                             );
-                            partidoRepository.save(p);
+                                partidoRepository.save(p);
+                                logger.info("Inserted Partido -> fechaHora='{}', idLocal={}, idVisitante={}", p.getFechaHora(), p.getIdLocal(), p.getIdVisitante());
                             success++;
                         } catch (Exception ex) {
                             failed++;
@@ -160,6 +171,7 @@ public class ImportService {
                 Partido[] partidos = objectMapper.readValue(content, Partido[].class);
                 for (Partido p : partidos) {
                     partidoRepository.save(p);
+                    logger.info("Inserted Partido -> fechaHora='{}', idLocal={}, idVisitante={}", p.getFechaHora(), p.getIdLocal(), p.getIdVisitante());
                     success++;
                 }
             }
