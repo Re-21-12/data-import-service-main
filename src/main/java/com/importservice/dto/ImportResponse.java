@@ -1,11 +1,14 @@
 package com.importservice.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public class ImportResponse {
     private int recordsImported;
+    @JsonProperty("errors")
     private int recordsFailed;
+    @JsonProperty("messages")
     private List<String> errors;
     private String message;
     private LocalDateTime timestamp;
