@@ -28,54 +28,85 @@ public class ImportController {
     private static final Logger logger = LoggerFactory.getLogger(ImportController.class);
 
     @PostMapping("/equipo/csv")
-    @Operation(summary = "Importar equipos desde CSV", requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class))))
+    @Operation(
+        summary = "Importar equipos desde CSV",
+        description = "Estructura requerida: nombre,id_Localidad,url_imagen (url_imagen es opcional)",
+        requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class)))
+    )
     public ResponseEntity<ImportResponse> importEquiposCSV(@RequestParam("file") MultipartFile file) {
         return handleFileImport(file, true, "equipo");
     }
-
+    
     @PostMapping("/equipo/json")
-    @Operation(summary = "Importar equipos desde JSON", requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class))))
+    @Operation(
+        summary = "Importar equipos desde JSON",
+        description = "Estructura requerida: [{\"nombre\": string, \"id_Localidad\": number, \"url_imagen\": string (opcional)}]",
+        requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class)))
+    )
     public ResponseEntity<ImportResponse> importEquiposJSON(@RequestParam("file") MultipartFile file) {
         return handleFileImport(file, false, "equipo");
     }
-
+    
     @PostMapping("/jugador/csv")
-    @Operation(summary = "Importar jugadores desde CSV", requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class))))
+    @Operation(
+        summary = "Importar jugadores desde CSV",
+        description = "Estructura requerida: nombre,apellido,Numero_jugador,posicion,estatura,nacionalidad,edad,id_Equipo (nacionalidad opcional)",
+        requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class)))
+    )
     public ResponseEntity<ImportResponse> importJugadoresCSV(@RequestParam("file") MultipartFile file) {
         return handleFileImport(file, true, "jugador");
     }
-
+    
     @PostMapping("/jugador/json")
-    @Operation(summary = "Importar jugadores desde JSON", requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class))))
+    @Operation(
+        summary = "Importar jugadores desde JSON",
+        description = "Estructura requerida: [{\"nombre\": string, \"apellido\": string, \"Numero_jugador\": number, \"posicion\": string, \"estatura\":    number, \"nacionalidad\": string (opcional), \"edad\": number, \"id_Equipo\": number}]",
+        requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class)))
+    )
     public ResponseEntity<ImportResponse> importJugadoresJSON(@RequestParam("file") MultipartFile file) {
         return handleFileImport(file, false, "jugador");
     }
-
+    
     @PostMapping("/localidad/csv")
-    @Operation(summary = "Importar localidades desde CSV", requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class))))
+    @Operation(
+        summary = "Importar localidades desde CSV",
+        description = "Estructura requerida: nombre",
+        requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class)))
+    )
     public ResponseEntity<ImportResponse> importLocalidadesCSV(@RequestParam("file") MultipartFile file) {
         return handleFileImport(file, true, "localidad");
     }
-
+    
     @PostMapping("/localidad/json")
-    @Operation(summary = "Importar localidades desde JSON", requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class))))
+    @Operation(
+        summary = "Importar localidades desde JSON",
+        description = "Estructura requerida: [{\"nombre\": string}]",
+        requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class)))
+    )
     public ResponseEntity<ImportResponse> importLocalidadesJSON(@RequestParam("file") MultipartFile file) {
         return handleFileImport(file, false, "localidad");
     }
-
+    
     @PostMapping("/partido/csv")
-    @Operation(summary = "Importar partidos desde CSV", requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class))))
+    @Operation(
+        summary = "Importar partidos desde CSV",
+        description = "Estructura requerida: FechaHora (ISO 8601),id_Localidad,id_Local,id_Visitante",
+        requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class)))
+    )
     public ResponseEntity<ImportResponse> importPartidosCSV(@RequestParam("file") MultipartFile file) {
         return handleFileImport(file, true, "partido");
     }
-
+    
     @PostMapping("/partido/json")
-    @Operation(summary = "Importar partidos desde JSON", requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class))))
+    @Operation(
+        summary = "Importar partidos desde JSON",
+        description = "Estructura requerida: [{\"FechaHora\": \"YYYY-MM-DDTHH:mm:ss\", \"id_Localidad\": number, \"id_Local\": number, \"id_Visitante\":    number}]",
+        requestBody = @RequestBody(content = @Content(mediaType = "multipart/form-data", schema = @Schema(implementation = FileUpload.class)))
+    )
     public ResponseEntity<ImportResponse> importPartidosJSON(@RequestParam("file") MultipartFile file) {
         return handleFileImport(file, false, "partido");
     }
 
-    // ===============================================================
     private ResponseEntity<ImportResponse> handleFileImport(MultipartFile file, boolean isCSV, String tipo) {
         try {
             logger.info("Request received: tipo='{}', isCSV={}, filename='{}', size={} bytes", tipo, isCSV, file == null ? "null" : file.getOriginalFilename(), file == null ? 0 : file.getSize());

@@ -1,0 +1,47 @@
+.mvn/
+    maven-wrapper.properties
+scripts/
+    wait-for-sql.sh
+src/
+    main/
+        java/
+            com/
+                importservice/
+                    dto/
+                        FileUpload.java
+                        ImportRequest.java
+                        ImportResponse.java
+                    data_import_service/
+                        DataImportServiceApplication.java
+                        config/
+                            OpenApiConfig.java
+                        controller
+                            ImportController.java
+                        entity/
+                            DataEntity.java
+                            Equipo.java
+                            Jugador.java
+                            Localidad.java
+                            Partido.java
+                        repository/
+                            DataRepository.java
+                            EquipoRepository.java
+                            JugadorRepository.java
+                            LocalidadRepository.java
+                            PartidoRepository.java
+                        service/
+                        ImportService.java
+    resources/
+        application.properties
+temp/
+    DataImportServiceApplicationTests.java
+.dockerignore
+.env
+.gitattributes
+.gitignore
+docker-compose.yml
+Dockerfile
+mvnw
+mvnw.cmd
+pom.xml
+README_DOCKER.md

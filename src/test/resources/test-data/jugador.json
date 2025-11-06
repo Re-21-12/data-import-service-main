@@ -1,0 +1,12 @@
+[
+  {
+    "nombre": "Lionel",
+    "apellido": "Messi",
+    "Numero_jugador": 10,
+    "posicion": "Delantero",
+    "estatura": 1.70,
+    "nacionalidad": "Argentina",
+    "edad": 36,
+    "id_Equipo": 3
+  }
+]

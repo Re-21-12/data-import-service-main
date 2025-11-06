@@ -44,3 +44,47 @@ Variables importantes:
 
 - `SPRING_DATASOURCE_URL` se inyecta automáticamente al servicio `app` en `docker-compose.yml` apuntando a `sqlserver`.
 - Usuario: `sa` / Contraseña: `YourStrong!Passw0rd` (ajusta en `docker-compose.yml` si lo deseas).
+
+## Estructura de Archivos
+
+Para importar datos correctamente, los archivos deben seguir una estructura fija. Consulta `ESTRUCTURA_ARCHIVOS.md` para detalles completos.
+
+### Ejemplos Rápidos
+
+**Equipo CSV:**
+```csv
+nombre,id_Localidad,url_imagen
+Real Madrid,1,https://example.com/logo.png
+```
+
+**Jugador JSON:**
+```json
+[{
+  "nombre": "Lionel",
+  "apellido": "Messi",
+  "Numero_jugador": 10,
+  "posicion": "Delantero",
+  "estatura": 1.70,
+  "nacionalidad": "Argentina",
+  "edad": 36,
+  "id_Equipo": 1
+}]
+```
+
+### Validaciones Automáticas
+
+El servicio valida:
+- ✅ Campos obligatorios presentes
+- ✅ Tipos de datos correctos
+- ✅ Longitudes máximas respetadas
+- ✅ Valores positivos para IDs y números
+- ✅ Equipos diferentes en partidos (local ≠ visitante)
+
+### Testing
+
+Ejecutar tests:
+```bash
+./mvnw test
+```
+
+Archivos de ejemplo para testing están en `src/test/resources/test-data/`.

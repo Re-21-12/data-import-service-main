@@ -10,10 +10,14 @@ RUN apt-get update \
 
 # Copiar pom y fuente, usar cache de dependencias
 COPY pom.xml ./
+
+# Descargar dependencias
+RUN mvn -B dependency:go-offline
+
 COPY src ./src
 
 # Build (skip tests para acelerar; quitar -DskipTests en CI si quieres tests)
-RUN mvn -B -DskipTests package
+RUN mvn -B -Dmaven.test.skip=true package
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-jammy

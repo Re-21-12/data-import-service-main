@@ -1,0 +1,12 @@
+[
+  {
+    "nombre": "Real Madrid",
+    "id_Localidad": 1,
+    "url_imagen": "https://example.com/real-madrid.png"
+  },
+  {
+    "nombre": "FC Barcelona",
+    "id_Localidad": 2,
+    "url_imagen": "https://example.com/barcelona.png"
+  }
+]

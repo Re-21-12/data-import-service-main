@@ -24,8 +24,7 @@ public class ImportService {
     @Autowired private JugadorRepository jugadorRepository;
     @Autowired private LocalidadRepository localidadRepository;
     @Autowired private PartidoRepository partidoRepository;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired private ObjectMapper objectMapper;
 
     // ========================= EQUIPO =========================
     public ImportResponse importEquipos(String content, boolean isCSV) {
@@ -38,7 +37,27 @@ public class ImportService {
                     for (int i = 1; i < rows.size(); i++) { // Saltar encabezado
                         try {
                             String[] r = rows.get(i);
-                            Equipo e = new Equipo(r[0], Long.parseLong(r[1]));
+                            if (r.length < 2) {
+                                failed++;
+                                errors.add("Fila " + i + ": Estructura incorrecta, se esperan al menos 2 columnas (nombre, id_localidad)");
+                                continue;
+                            }
+
+                            Equipo e = new Equipo();
+                            e.setNombre(r[0].trim());
+                            e.setIdLocalidad(Long.parseLong(r[1].trim()));
+                            if (r.length > 2 && r[2] != null && !r[2].trim().isEmpty()) {
+                                e.setUrlImagen(r[2].trim());
+                            }
+
+                            // Validar estructura
+                            List<String> validationErrors = com.importservice.data_import_service.validator.EquipoValidator.validate(e, i);
+                            if (!validationErrors.isEmpty()) {
+                                failed++;
+                                errors.addAll(validationErrors);
+                                continue;
+                            }
+
                             equipoRepository.save(e);
                             logger.info("Inserted Equipo -> nombre='{}', idLocalidad={}", e.getNombre(), e.getIdLocalidad());
                             success++;
@@ -50,7 +69,16 @@ public class ImportService {
                 }
             } else {
                 Equipo[] equipos = objectMapper.readValue(content, Equipo[].class);
-                for (Equipo e : equipos) {
+                for (int idx = 0; idx < equipos.length; idx++) {
+                    Equipo e = equipos[idx];
+
+                    List<String> validationErrors = com.importservice.data_import_service.validator.EquipoValidator.validate(e, idx + 1);
+                    if (!validationErrors.isEmpty()) {
+                        failed++;
+                        errors.addAll(validationErrors);
+                        continue;
+                    }
+
                     equipoRepository.save(e);
                     logger.info("Inserted Equipo -> nombre='{}', idLocalidad={}", e.getNombre(), e.getIdLocalidad());
                     success++;
@@ -74,14 +102,34 @@ public class ImportService {
                     for (int i = 1; i < rows.size(); i++) {
                         try {
                             String[] r = rows.get(i);
+                            if (r.length < 7) {
+                                failed++;
+                                errors.add("Fila " + i + ": Estructura incorrecta, se esperan al menos 7 columnas");
+                                continue;
+                            }
+
                             Jugador j = new Jugador();
-                            j.setNombre(r[0]);
-                            j.setApellido(r[1]);
-                            j.setEstatura(Double.parseDouble(r[2]));
-                            j.setPosicion(r[3]);
-                            j.setNacionalidad(r[4]);
-                            j.setEdad(Integer.parseInt(r[5]));
-                            j.setIdEquipo(Long.parseLong(r[6]));
+                            j.setNombre(r[0].trim());
+                            j.setApellido(r[1].trim());
+                            j.setNumeroJugador(Integer.parseInt(r[2].trim()));
+                            j.setPosicion(r[3].trim());
+                            j.setEstatura(Double.parseDouble(r[4].trim()));
+                            if (r.length > 5 && r[5] != null && !r[5].trim().isEmpty()) {
+                                j.setNacionalidad(r[5].trim());
+                            }
+                            j.setEdad(Integer.parseInt(r[6].trim()));
+                            j.setIdEquipo(Long.parseLong(r[7].trim()));
+
+                            j.setCreatedAt(java.time.LocalDateTime.now());
+                            j.setCreatedBy(1); // Sistema
+
+                            List<String> validationErrors = com.importservice.data_import_service.validator.JugadorValidator.validate(j, i);
+                            if (!validationErrors.isEmpty()) {
+                                failed++;
+                                errors.addAll(validationErrors);
+                                continue;
+                            }
+
                             jugadorRepository.save(j);
                             logger.info("Inserted Jugador -> nombre='{}', apellido='{}', idEquipo={}", j.getNombre(), j.getApellido(), j.getIdEquipo());
                             success++;
@@ -93,7 +141,23 @@ public class ImportService {
                 }
             } else {
                 Jugador[] jugadores = objectMapper.readValue(content, Jugador[].class);
-                for (Jugador j : jugadores) {
+                for (int idx = 0; idx < jugadores.length; idx++) {
+                    Jugador j = jugadores[idx];
+
+                    if (j.getCreatedAt() == null) {
+                        j.setCreatedAt(java.time.LocalDateTime.now());
+                    }
+                    if (j.getCreatedBy() == null) {
+                        j.setCreatedBy(1);
+                    }
+
+                    List<String> validationErrors = com.importservice.data_import_service.validator.JugadorValidator.validate(j, idx + 1);
+                    if (!validationErrors.isEmpty()) {
+                        failed++;
+                        errors.addAll(validationErrors);
+                        continue;
+                    }
+
                     jugadorRepository.save(j);
                     logger.info("Inserted Jugador -> nombre='{}', apellido='{}', idEquipo={}", j.getNombre(), j.getApellido(), j.getIdEquipo());
                     success++;
@@ -117,9 +181,24 @@ public class ImportService {
                     for (int i = 1; i < rows.size(); i++) {
                         try {
                             String[] r = rows.get(i);
-                            Localidad l = new Localidad(r[0]);
-                                localidadRepository.save(l);
-                                logger.info("Inserted Localidad -> nombre='{}'", l.getNombre());
+                            if (r.length < 1) {
+                                failed++;
+                                errors.add("Fila " + i + ": Estructura incorrecta, se espera al menos 1 columna (nombre)");
+                                continue;
+                            }
+
+                            Localidad l = new Localidad();
+                            l.setNombre(r[0].trim());
+
+                            List<String> validationErrors = com.importservice.data_import_service.validator.LocalidadValidator.validate(l, i);
+                            if (!validationErrors.isEmpty()) {
+                                failed++;
+                                errors.addAll(validationErrors);
+                                continue;
+                            }
+
+                            localidadRepository.save(l);
+                            logger.info("Inserted Localidad -> nombre='{}'", l.getNombre());
                             success++;
                         } catch (Exception ex) {
                             failed++;
@@ -129,7 +208,16 @@ public class ImportService {
                 }
             } else {
                 Localidad[] localidades = objectMapper.readValue(content, Localidad[].class);
-                for (Localidad l : localidades) {
+                for (int idx = 0; idx < localidades.length; idx++) {
+                    Localidad l = localidades[idx];
+
+                    List<String> validationErrors = com.importservice.data_import_service.validator.LocalidadValidator.validate(l, idx + 1);
+                    if (!validationErrors.isEmpty()) {
+                        failed++;
+                        errors.addAll(validationErrors);
+                        continue;
+                    }
+
                     localidadRepository.save(l);
                     logger.info("Inserted Localidad -> nombre='{}'", l.getNombre());
                     success++;
@@ -153,13 +241,27 @@ public class ImportService {
                     for (int i = 1; i < rows.size(); i++) {
                         try {
                             String[] r = rows.get(i);
-                            Partido p = new Partido(
-                                LocalDateTime.parse(r[0]),
-                                Long.parseLong(r[1]),
-                                Long.parseLong(r[2])
-                            );
-                                partidoRepository.save(p);
-                                logger.info("Inserted Partido -> fechaHora='{}', idLocal={}, idVisitante={}", p.getFechaHora(), p.getIdLocal(), p.getIdVisitante());
+                            if (r.length < 4) {
+                                failed++;
+                                errors.add("Fila " + i + ": Estructura incorrecta, se esperan al menos 4 columnas");
+                                continue;
+                            }
+
+                            Partido p = new Partido();
+                            p.setFechaHora(java.time.LocalDateTime.parse(r[0].trim()));
+                            p.setIdLocalidad(Long.parseLong(r[1].trim()));
+                            p.setIdLocal(Long.parseLong(r[2].trim()));
+                            p.setIdVisitante(Long.parseLong(r[3].trim()));
+
+                            List<String> validationErrors = com.importservice.data_import_service.validator.PartidoValidator.validate(p, i);
+                            if (!validationErrors.isEmpty()) {
+                                failed++;
+                                errors.addAll(validationErrors);
+                                continue;
+                            }
+
+                            partidoRepository.save(p);
+                            logger.info("Inserted Partido -> fechaHora='{}', idLocal={}, idVisitante={}", p.getFechaHora(), p.getIdLocal(), p.getIdVisitante());
                             success++;
                         } catch (Exception ex) {
                             failed++;
@@ -169,7 +271,16 @@ public class ImportService {
                 }
             } else {
                 Partido[] partidos = objectMapper.readValue(content, Partido[].class);
-                for (Partido p : partidos) {
+                for (int idx = 0; idx < partidos.length; idx++) {
+                    Partido p = partidos[idx];
+
+                    List<String> validationErrors = com.importservice.data_import_service.validator.PartidoValidator.validate(p, idx + 1);
+                    if (!validationErrors.isEmpty()) {
+                        failed++;
+                        errors.addAll(validationErrors);
+                        continue;
+                    }
+
                     partidoRepository.save(p);
                     logger.info("Inserted Partido -> fechaHora='{}', idLocal={}, idVisitante={}", p.getFechaHora(), p.getIdLocal(), p.getIdVisitante());
                     success++;
