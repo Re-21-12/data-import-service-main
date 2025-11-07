@@ -1,4 +1,4 @@
-package com.importservice.data_import_service.config;
+package com.importservice.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
